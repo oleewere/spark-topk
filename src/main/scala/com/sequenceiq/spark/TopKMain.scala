@@ -3,6 +3,7 @@ import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{SparkContext, SparkConf}
 
 object TopKMain {
+  import org.apache.spark.SparkContext._
   def main(args: Array[String]) {
     val input = args(0)
     val output = args(1)
@@ -17,8 +18,10 @@ object TopKMain {
     ).persist(getStorageLevel(storageLevel))
 
 
-    val result = txtFile.keyBy(arr => arr(0))
-     .top(top.toInt)
+    val result = txtFile
+      .map(arr => (arr(0), 1))
+      .reduceByKey(_ + _)
+      .top(top.toInt)
 
     sc.parallelize(result, 1).saveAsTextFile(output)
 
