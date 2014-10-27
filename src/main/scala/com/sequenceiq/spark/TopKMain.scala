@@ -1,3 +1,4 @@
+package com.sequenceiq.spark
 
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{SparkContext, SparkConf}
@@ -21,6 +22,7 @@ object TopKMain {
     val result = txtFile
       .map(arr => (arr(0), 1))
       .reduceByKey(_ + _)
+      .map(pair => pair.swap)
       .top(top.toInt)
 
     sc.parallelize(result, 1).saveAsTextFile(output)
