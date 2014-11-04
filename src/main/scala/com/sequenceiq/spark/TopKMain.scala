@@ -2,21 +2,23 @@ package com.sequenceiq.spark
 
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{SparkContext, SparkConf}
+import org.apache.spark.rdd.RDD
 
 object TopKMain {
   import org.apache.spark.SparkContext._
   def main(args: Array[String]) {
     val input = args(0)
-    val output = args(1)
-    val top = args(2)
-    val storageLevel = args(3)
+    val top = args(1)
+    val storageLevel = args.length match {
+      case 3 => args(2)
+      case _ => "none"
+    }
 
     val conf = new SparkConf()
     val sc = new SparkContext(conf)
 
-    val txtFile = sc.textFile(input).map(
-      line => line.split(",")
-    ).persist(getStorageLevel(storageLevel))
+    val txtFile = doPersist(
+      sc.textFile(input).map(line => line.split(" ")), storageLevel)
 
 
     val result = txtFile
@@ -25,16 +27,19 @@ object TopKMain {
       .map(pair => pair.swap)
       .top(top.toInt)
 
-    sc.parallelize(result, 1).saveAsTextFile(output)
+    result.foreach{case (number, value) => println (value + " : " + number)}
+
+
 
   }
-  def getStorageLevel(level: String): StorageLevel = {
+
+  def doPersist(rdd: RDD[Array[String]], level: String): RDD[Array[String]] = {
     level match {
-      case "cache" => StorageLevel.MEMORY_ONLY
-      case "mem_and_disk" => StorageLevel.MEMORY_AND_DISK
-      case "mem_ser" => StorageLevel.MEMORY_ONLY_SER
-      case "mem_and_disk_ser" => StorageLevel.MEMORY_AND_DISK_SER
-      case _ => StorageLevel.NONE
+      case "cache" => rdd.persist(StorageLevel.MEMORY_ONLY)
+      case "mem_and_disk" => rdd.persist(StorageLevel.MEMORY_AND_DISK)
+      case "mem_ser" => rdd.persist(StorageLevel.MEMORY_ONLY_SER)
+      case "mem_and_disk_ser" => rdd.persist(StorageLevel.MEMORY_AND_DISK_SER)
+      case _ => rdd
     }
   }
 
