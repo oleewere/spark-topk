@@ -9,5 +9,5 @@ Running on Spark:
 
 Running on Tez (with Spark):
 ```
-./bin/spark-submit --class com.sequenceiq.spark.TopKMain --master --master execution-context:org.apache.spark.tez.TezJobExecutionContext --conf update-classpath=true spark-topk-1.0.jar /data 10
+./bin/spark-submit --class com.sequenceiq.spark.TopKMain --master execution-context:org.apache.spark.tez.TezJobExecutionContext --conf update-classpath=true spark-topk-1.0.jar /data 10
 ```
